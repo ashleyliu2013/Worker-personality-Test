@@ -374,7 +374,7 @@ if (typeof optionScore === 'number') {
     <div className="w-full h-full overflow-hidden relative">
       {/* 音樂控制按鈕 */}
 <img
-  src={isPlaying ? "volume.png" : "volume-off.png"}
+  src={isPlaying ? "/Worker-personality-Test/volume.png" : "/Worker-personality-Test/volume-off.png"}
   alt="音樂開關"
   onClick={toggleMusic}
   style={{
@@ -392,13 +392,13 @@ if (typeof optionScore === 'number') {
       <motion.div
         key="loading"
         className="absolute inset-0 bg-cover bg-center flex flex-col items-center justify-center text-white"
-        style={{ backgroundImage: 'url(bg-start-page.png)' }}
+        style={{ backgroundImage: 'url(/Worker-personality-Test/bg-start-page.png)' }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
         <img
-          src="bird-icon.png"
+          src="/Worker-personality-Test/bird-icon.png"
           alt="bird icon"
           style={{
             width: "146.128px",
@@ -448,7 +448,7 @@ if (typeof optionScore === 'number') {
   <motion.div
     key="nameInput"
     className="absolute inset-0 bg-cover bg-center flex flex-col items-center justify-center text-white"
-    style={{ backgroundImage: "url('bg-name-page.png')" }}
+    style={{ backgroundImage: "url('/Worker-personality-Test/bg-name-page.png')" }}
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
@@ -519,7 +519,7 @@ if (typeof optionScore === 'number') {
           <motion.div
             key="q1"
             className="absolute inset-0 bg-cover bg-center flex flex-col items-center justify-center text-white px-6 text-center"
-            style={{ backgroundImage: "url('bg-q1.png')" }}
+            style={{ backgroundImage: "url('/Worker-personality-Test/bg-q1.png')" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -592,7 +592,7 @@ if (typeof optionScore === 'number') {
   <motion.div
     key="q2"
     className="absolute inset-0 bg-cover bg-center flex flex-col items-center justify-center text-white px-6 text-center"
-    style={{ backgroundImage: "url('bg-q2.png')" }}
+    style={{ backgroundImage: "url('/Worker-personality-Test/bg-q2.png')" }}
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
@@ -668,7 +668,7 @@ if (typeof optionScore === 'number') {
   <motion.div
     key="q3"
     className="absolute inset-0 bg-cover bg-center flex flex-col items-center justify-center text-white px-6 text-center"
-    style={{ backgroundImage: "url('bg-q3.png')" }}
+    style={{ backgroundImage: "url('/Worker-personality-Test/bg-q3.png')" }}
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
@@ -745,7 +745,7 @@ if (typeof optionScore === 'number') {
   <motion.div
     key="q4"
     className="absolute inset-0 bg-cover bg-center flex flex-col items-center justify-center text-white px-6 text-center"
-    style={{ backgroundImage: "url('bg-q4.png')" }}
+    style={{ backgroundImage: "url('/Worker-personality-Test/bg-q4.png')" }}
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
@@ -822,7 +822,7 @@ if (typeof optionScore === 'number') {
   <motion.div
     key="q5"
     className="absolute inset-0 bg-cover bg-center flex flex-col items-center justify-center text-white px-6 text-center"
-    style={{ backgroundImage: "url('bg-q5.png')" }}
+    style={{ backgroundImage: "url('/Worker-personality-Test/bg-q5.png')" }}
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
@@ -900,7 +900,7 @@ if (typeof optionScore === 'number') {
   <motion.div
     key="analysisLoading"
     className="absolute inset-0 bg-cover bg-center flex flex-col items-center justify-center text-white px-6 text-center"
-    style={{ backgroundImage: "url('bg-analysis.png')" }}
+    style={{ backgroundImage: "url('/Worker-personality-Test/bg-analysis.png')" }}
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
@@ -1015,7 +1015,7 @@ if (typeof optionScore === 'number') {
       </div>
 
       <img
-        src={`emotion-bg-${result.id}.png`}
+        src={`/Worker-personality-Test/emotion-bg-${result.id}.png`}
         alt="emotion bg"
         className="absolute top-0 left-0"
         style={{
@@ -1029,7 +1029,7 @@ if (typeof optionScore === 'number') {
         }}
       />
       <img
-        src={`emotion-radar-${result.id}.png`}
+        src={`/Worker-personality-Test/emotion-radar-${result.id}.png`}
         alt="radar"
         className="absolute"
         style={{
@@ -1041,7 +1041,7 @@ if (typeof optionScore === 'number') {
         }}
       />
       <img
-        src={`emotion-fill-${result.id}.png`}
+        src={`/Worker-personality-Test/emotion-fill-${result.id}.png`}
         alt="fill"
         className="absolute"
         style={{
@@ -1213,7 +1213,7 @@ if (typeof optionScore === 'number') {
         {(personalityRelations as any)[result.id].heal.map((charId: string) => (
           <img
             key={charId}
-            src={`icon-${charId}.png`}
+            src={`/Worker-personality-Test/icon-${charId}.png`}
             alt={charId}
             style={{ width: '72px', height: '72px', borderRadius: '50%' }}
           />
@@ -1262,7 +1262,7 @@ if (typeof optionScore === 'number') {
         {(personalityRelations as any) [result.id].hurt.map((charId: string) => (
           <img
             key={charId}
-            src={`icon-${charId}.png`}
+            src={`/Worker-personality-Test/icon-${charId}.png`}
             alt={charId}
             style={{ width: '72px', height: '72px', borderRadius: '50%' }}
           />
@@ -1275,7 +1275,7 @@ if (typeof optionScore === 'number') {
 
     {/* 角色圖片 - 放到最底層並放大 */}
     <img
-      src={`result-${result.id}.png`}
+      src={`/Worker-personality-Test/result-${result.id}.png`}
       alt={result.name}
       className="absolute"
       style={{
@@ -1294,7 +1294,7 @@ if (typeof optionScore === 'number') {
 
     {/* Debug 區塊顯示 result.id */}
     <div className="text-xs mt-4 text-white">
-      圖片預期路徑：{`result-${result?.id}.png`}
+      圖片預期路徑：{`/Worker-personality-Test/result-${result?.id}.png`}
       <br />
       JSON：<pre>{JSON.stringify(result, null, 2)}</pre>
     </div>
