@@ -288,12 +288,12 @@ export default function WorkerPlayground() {
       anxious: number;
     };
   } | null>(null);
-  const clickSound = typeof window !== 'undefined' ? new Audio('click.mp3') : null;
+  const clickSound = typeof window !== 'undefined' ? new Audio('/click.mp3') : null;
 const [isPlaying, setIsPlaying] = useState(false);
 const audioRef = useRef<HTMLAudioElement | null>(null);
 
 useEffect(() => {
-  audioRef.current = new Audio('bg-music.mp3');
+  audioRef.current = new Audio('/bg-music.mp3');
   audioRef.current.loop = true;
 
   return () => {
