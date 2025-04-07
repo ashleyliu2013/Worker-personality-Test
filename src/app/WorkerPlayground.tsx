@@ -243,8 +243,6 @@ const relationHeaderBackground = {
   shieldBearer: '#2B300C',
 };
 
-  
-  
 
 export default function WorkerPlayground() {
   const [pageIndex, setPageIndex] = useState(0);
@@ -307,7 +305,6 @@ if (typeof optionScore === 'number') {
   useEffect(() => {
     if (page === 'analysisLoading') {
       const timeout = setTimeout(() => {
-        const score = calculateScore(answers);
   
         const personalityByScore: { [key: number]: string } = {
           0: 'silentMage',
@@ -322,8 +319,7 @@ if (typeof optionScore === 'number') {
           9: 'shieldBearer',
           10: 'shieldBearer',
         };
-  
-        const resultId = personalityByScore[score];
+
         const matched = personalities.find((p) => p.id === resultId)!;
   
         setResult(matched);
