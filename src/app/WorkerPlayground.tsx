@@ -288,12 +288,12 @@ export default function WorkerPlayground() {
       anxious: number;
     };
   } | null>(null);
-  const clickSound = typeof window !== 'undefined' ? new Audio('/click.mp3') : null;
+  const clickSound = typeof window !== 'undefined' ? new Audio('click.mp3') : null;
 const [isPlaying, setIsPlaying] = useState(false);
 const audioRef = useRef<HTMLAudioElement | null>(null);
 
 useEffect(() => {
-  audioRef.current = new Audio('/bg-music.mp3');
+  audioRef.current = new Audio('bg-music.mp3');
   audioRef.current.loop = true;
 
   return () => {
@@ -392,7 +392,7 @@ if (typeof optionScore === 'number') {
       <motion.div
         key="loading"
         className="absolute inset-0 bg-cover bg-center flex flex-col items-center justify-center text-white"
-        style={{ backgroundImage: 'url(/bg-start-page.png)' }}
+        style={{ backgroundImage: 'url(bg-start-page.png)' }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
