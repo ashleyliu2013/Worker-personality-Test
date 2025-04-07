@@ -243,33 +243,6 @@ const relationHeaderBackground = {
   shieldBearer: '#2B300C',
 };
 
-
-function calculateScore(answers: number[]): number {
-  let score = 0;
-
-  answers.forEach((ans, index) => {
-    const qKey = `q${index + 1}`;
-    const optionScore = emotionMap[qKey]?.[ans];
-    if (typeof optionScore === 'number') {
-      score += optionScore;
-    }    
-  });
-
-  return score;
-}
-
-  
-
-  function getPersonalityByScore(score: number) {
-    if (score <= 2) return personalities.find(p => p.id === 'grumpyGremlin')!;
-    if (score === 3) return personalities.find(p => p.id === 'shadowTactician')!;
-    if (score === 4) return personalities.find(p => p.id === 'shieldBearer')!;
-    if (score === 5) return personalities.find(p => p.id === 'silentMage')!;
-    if (score === 6) return personalities.find(p => p.id === 'resolverCat')!;
-    if (score === 7) return personalities.find(p => p.id === 'sootheBeast')!;
-    if (score === 8) return personalities.find(p => p.id === 'burstFighter')!;
-    return personalities.find(p => p.id === 'sunshineWalker')!;
-  }
   
   
 
