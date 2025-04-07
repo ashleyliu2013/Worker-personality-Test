@@ -285,23 +285,23 @@ const toggleMusic = () => {
   }
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function calculateScore(answers: number[]): number {
+   let score = 0;
 
-  const page = pages[pageIndex];
-  function calculateScore(answers: number[]): number {
-    let score = 0;
-  
-    answers.forEach((ans, index) => {
-      const qKey = `q${index + 1}`;
-      const optionScore = emotionMap[qKey]?.[ans];
-if (typeof optionScore === 'number') {
-  score += optionScore;
-}
-    });
-  
-    return score;
-  }  
+   answers.forEach((ans, index) => {
+     const qKey = `q${index + 1}`;
+    const optionScore = emotionMap[qKey]?.[ans];
+     if (typeof optionScore === 'number') {
+       score += optionScore;
+     }
+   });
 
-  
+   return score;
+ }
+ 
+
+const page = pages[pageIndex];
   useEffect(() => {
     if (page === 'analysisLoading') {
       const timeout = setTimeout(() => {
