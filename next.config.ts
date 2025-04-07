@@ -3,6 +3,7 @@
 const nextConfig = {
   output: 'export',
   basePath: '/Worker-personality-Test', // ⭐ GitHub Pages 需要
+  assetPrefix: '/Worker-personality-Test', // ⭐⭐ 必加！！
   images: {
     unoptimized: true, // 禁用 Next.js 的圖片優化
   },
