@@ -1,6 +1,6 @@
 // 更新後的打工人測驗頁面（含 loading/nameInput/分析 loading 背景與動畫 + Q1 頁面）
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const pages = [
@@ -41,44 +41,23 @@ const personalityBackgrounds: { [key: string]: string } = {
     shieldBearer: '#2B300C',
   };
   
-const emotionMap: {
-    [key: string]: { wornOut: number; emotional: number; positive: number; active: number; anxious: number }[];
-  } = {
+  const emotionMap: { [key: string]: number[] } = {
+    q1: [2, 0, 1],
+    q2: [1, 0, 2],
+    q3: [2, 1, 0],
+    q4: [2, 1, 0],
+    q5: [2, 0, 1],
+  };
+  
 
-  q1: [
-    { wornOut: 0, emotional: 15, positive: 20, active: 40, anxious: 5 },
-    { wornOut: 25, emotional: 15, positive: 0, active: 5, anxious: 15 },
-    { wornOut: 10, emotional: 10, positive: 5, active: 10, anxious: 20 },
-  ],
-  q2: [
-    { wornOut: 10, emotional: 20, positive: 10, active: 5, anxious: 15 },
-    { wornOut: 25, emotional: 30, positive: 5, active: 5, anxious: 15 },
-    { wornOut: 5, emotional: 10, positive: 10, active: 25, anxious: 10 },
-  ],
-  q3: [
-    { wornOut: 10, emotional: 25, positive: 10, active: 30, anxious: 15 },
-    { wornOut: 15, emotional: 15, positive: 10, active: 5, anxious: 20 },
-    { wornOut: 20, emotional: 10, positive: 5, active: 0, anxious: 30 },
-  ],
-  q4: [
-    { wornOut: 10, emotional: 25, positive: 5, active: 30, anxious: 10 },
-    { wornOut: 10, emotional: 10, positive: 15, active: 15, anxious: 10 },
-    { wornOut: 5, emotional: 5, positive: 30, active: 10, anxious: 5 },
-  ],
-  q5: [
-    { wornOut: 0, emotional: 20, positive: 15, active: 40, anxious: 10 },
-    { wornOut: 20, emotional: 30, positive: 5, active: 5, anxious: 25 },
-    { wornOut: 30, emotional: 10, positive: 5, active: 0, anxious: 20 },
-  ]
-};
-
+// 修改後的人格類型定義 - 更加分散的情感特徵值
 const personalities = [
-  { id: 'silentMage', name: '沉默魔導師', emotion: { wornOut: 10, emotional: 15, positive: 20, active: 30, anxious: 5 } },
+  { id: 'silentMage', name: '沉默魔導師', emotion: { wornOut: 15, emotional: 15, positive: 20, active: 30, anxious: 5 } },
   { id: 'burstFighter', name: '爆裂戰士', emotion: { wornOut: 5, emotional: 40, positive: 20, active: 30, anxious: 20 } },
   { id: 'sootheBeast', name: '療癒小獸', emotion: { wornOut: 5, emotional: 35, positive: 40, active: 20, anxious: 15 } },
-  { id: 'sunshineWalker', name: '日行者', emotion: { wornOut: 5, emotional: 40, positive: 50, active: 45, anxious: 20 } },
-  { id: 'shadowTactician', name: '影子策士', emotion: { wornOut: 20, emotional: 30, positive: 5, active: 10, anxious: 15 } },
-  { id: 'grumpyGremlin', name: '厭世小怪獸', emotion: { wornOut: 90, emotional: 40, positive: 5, active: 2, anxious: 35 } },
+  { id: 'sunshineWalker', name: '日行者', emotion: { wornOut: 5, emotional: 20, positive: 50, active: 45, anxious: 10 } },
+  { id: 'shadowTactician', name: '影子策士', emotion: { wornOut: 25, emotional: 30, positive: 5, active: 10, anxious: 15 } },
+  { id: 'grumpyGremlin', name: '厭世小怪獸', emotion: { wornOut: 70, emotional: 20, positive: 5, active: 5, anxious: 40 } },
   { id: 'resolverCat', name: '逆轉師', emotion: { wornOut: 10, emotional: 25, positive: 30, active: 35, anxious: 20 } },
   { id: 'shieldBearer', name: '護法者', emotion: { wornOut: 30, emotional: 25, positive: 10, active: 15, anxious: 35 } },
 ];
@@ -172,60 +151,126 @@ const personalityQuotes: {
   }
 };
 
+const personalityEmotionQuotes = {
+  silentMage: {
+    content: '理性就是魔法\n冷靜才能活下來',
+    background: '#F3ECE0',
+    headerBg: '#19121D',
+    headerTextColor: '#FFF',
+    textColor: '#19121D'
+  },
+  burstFighter: {
+    content: '遇到犯賤行為就是要\n硬碰硬無所畏懼',
+    background: '#D46614',
+    headerBg: '#491A00',
+    headerTextColor: 'rgba(247, 240, 234, 0.80)',
+    textColor: '#471900'
+  },
+  sootheBeast: {
+    content: '我只是不想撕破臉',
+    background: '#FEF7CE',
+    headerBg: '#143802',
+    headerTextColor: '#F5E882',
+    textColor: '#143902'
+  },
+  grumpyGremlin: {
+    content: '生活已經如此艱難\n就不要為難我了',
+    background: '#ECE2F4',
+    headerBg: '#19121D',
+    headerTextColor: '#FFF',
+    textColor: '#19121D'
+  },
+  sunshineWalker: {
+    content: '我不只會喊口號\n我還會衝第一',
+    background: '#FFF',
+    headerBg: '#F15502',
+    headerTextColor: '#FFF',
+    textColor: '#F15502'
+  },
+  shadowTactician: {
+    content: '觀察才是我的本領\n策劃才是專長',
+    background: '#77A453',
+    headerBg: '#143802',
+    headerTextColor: '#EAE59A',
+    textColor: '#143802'
+  },
+  resolverCat: {
+    content: '混亂，是我最熟悉的戰場',
+    background: '#013F2E',
+    headerBg: '#00231B',
+    headerTextColor: '#FFF',
+    textColor: '#E0E3CE'
+  },
+  shieldBearer: {
+    content: '我沒事\n你們先走',
+    background: '#F2D37D',
+    headerBg: '#2B300C',
+    headerTextColor: '#FFF',
+    textColor: '#2B2F0B'
+  }
+}
 
-function calculateEmotion(answers: number[]) {
-    const total = {
-      wornOut: 0,
-      emotional: 0,
-      positive: 0,
-      active: 0,
-      anxious: 0,
-    };
+const personalityRelations = {
+  silentMage: { heal: ['sootheBeast', 'resolverCat'], hurt: ['burstFighter', 'sunshineWalker'] },
+  burstFighter: { heal: ['sunshineWalker', 'resolverCat'], hurt: ['silentMage', 'grumpyGremlin'] },
+  sootheBeast: { heal: ['silentMage', 'shieldBearer'], hurt: ['burstFighter', 'shadowTactician'] },
+  grumpyGremlin: { heal: ['sootheBeast', 'shieldBearer'], hurt: ['sunshineWalker', 'burstFighter'] },
+  sunshineWalker: { heal: ['burstFighter', 'resolverCat'], hurt: ['grumpyGremlin', 'shadowTactician'] },
+  shadowTactician: { heal: ['resolverCat', 'silentMage'], hurt: ['sootheBeast', 'sunshineWalker'] },
+  resolverCat: { heal: ['shadowTactician', 'sunshineWalker'], hurt: ['shieldBearer', 'burstFighter'] },
+  shieldBearer: { heal: ['sootheBeast', 'grumpyGremlin'], hurt: ['resolverCat', 'shadowTactician'] },
+};
+
+const relationBlockBackground = {
+  silentMage: '#F3ECE0',
+  burstFighter: '#D46614',
+  sootheBeast: '#FEF7CE',
+  grumpyGremlin: '#ECE2F4',
+  sunshineWalker: '#FFF',
+  shadowTactician: '#77A453',
+  resolverCat: '#013F2E',
+  shieldBearer: '#F2D37D',
+};
+
+const relationHeaderBackground = {
+  silentMage: '#19121D',
+  burstFighter: '#491A00',
+  sootheBeast: '#143802',
+  grumpyGremlin: '#19121D',
+  sunshineWalker: '#F15502',
+  shadowTactician: '#143802',
+  resolverCat: '#00231B',
+  shieldBearer: '#2B300C',
+};
+
+
+function calculateScore(answers: number[]): number {
+  let score = 0;
+
+  answers.forEach((ans, index) => {
+    const qKey = `q${index + 1}`;
+    const optionScore = emotionMap[qKey]?.[ans];
+    if (typeof optionScore === 'number') {
+      score += optionScore;
+    }    
+  });
+
+  return score;
+}
+
   
-    answers.forEach((ans, index) => {
-      const qKey = `q${index + 1}`;
-      const emotion = emotionMap[qKey]?.[ans];
-      if (emotion) {
-        total.wornOut += emotion.wornOut;
-        total.emotional += emotion.emotional;
-        total.positive += emotion.positive;
-        total.active += emotion.active;
-        total.anxious += emotion.anxious;
-      }
-    });
-  
-    return total;
+
+  function getPersonalityByScore(score: number) {
+    if (score <= 2) return personalities.find(p => p.id === 'grumpyGremlin')!;
+    if (score === 3) return personalities.find(p => p.id === 'shadowTactician')!;
+    if (score === 4) return personalities.find(p => p.id === 'shieldBearer')!;
+    if (score === 5) return personalities.find(p => p.id === 'silentMage')!;
+    if (score === 6) return personalities.find(p => p.id === 'resolverCat')!;
+    if (score === 7) return personalities.find(p => p.id === 'sootheBeast')!;
+    if (score === 8) return personalities.find(p => p.id === 'burstFighter')!;
+    return personalities.find(p => p.id === 'sunshineWalker')!;
   }
   
-
-  function getClosestPersonality(emotionSum: {
-    wornOut: number;
-    emotional: number;
-    positive: number;
-    active: number;
-    anxious: number;
-  }) {
-    let minDistance = Infinity;
-    let closest = personalities[0];
-  
-    personalities.forEach(p => {
-      const e = p.emotion;
-      const dist = Math.sqrt(
-        Math.pow(e.wornOut - emotionSum.wornOut, 2) +
-        Math.pow(e.emotional - emotionSum.emotional, 2) +
-        Math.pow(e.positive - emotionSum.positive, 2) +
-        Math.pow(e.active - emotionSum.active, 2) +
-        Math.pow(e.anxious - emotionSum.anxious, 2)
-      );
-  
-      if (dist < minDistance) {
-        minDistance = dist;
-        closest = p;
-      }
-    });
-  
-    return closest;
-  }
   
 
 export default function WorkerPlayground() {
@@ -243,29 +288,79 @@ export default function WorkerPlayground() {
       anxious: number;
     };
   } | null>(null);
+  const clickSound = typeof window !== 'undefined' ? new Audio('/click.mp3') : null;
+const [isPlaying, setIsPlaying] = useState(false);
+const audioRef = useRef<HTMLAudioElement | null>(null);
+
+useEffect(() => {
+  audioRef.current = new Audio('/bg-music.mp3');
+  audioRef.current.loop = true;
+
+  return () => {
+    audioRef.current?.pause();
+    audioRef.current = null;
+  };
+}, []);
+
+const toggleMusic = () => {
+  if (!audioRef.current) return;
+
+  if (isPlaying) {
+    audioRef.current.pause();
+    setIsPlaying(false);
+  } else {
+    audioRef.current.play();
+    setIsPlaying(true);
+  }
+};
+
 
   const page = pages[pageIndex];
+  function calculateScore(answers: number[]): number {
+    let score = 0;
+  
+    answers.forEach((ans, index) => {
+      const qKey = `q${index + 1}`;
+      const optionScore = emotionMap[qKey]?.[ans];
+if (typeof optionScore === 'number') {
+  score += optionScore;
+}
+    });
+  
+    return score;
+  }  
 
+  
   useEffect(() => {
     if (page === 'analysisLoading') {
-        console.log('分析邏輯觸發');
       const timeout = setTimeout(() => {
-        const total = calculateEmotion(answers);
-        const matched = getClosestPersonality(total);
-        const timeout = setTimeout(() => {
-            const total = calculateEmotion(answers);
-            console.log('Emotion 計算結果:', total);
-            const matched = getClosestPersonality(total);
-            console.log('找到最接近人格:', matched);
-            setResult(matched);
-            setPageIndex(pages.indexOf('result'));
-          }, 5000);          
+        const score = calculateScore(answers);
+  
+        const personalityByScore: { [key: number]: string } = {
+          0: 'silentMage',
+          1: 'silentMage',
+          2: 'silentMage',
+          3: 'burstFighter',
+          4: 'sootheBeast',
+          5: 'sunshineWalker',
+          6: 'shadowTactician',
+          7: 'grumpyGremlin',
+          8: 'resolverCat',
+          9: 'shieldBearer',
+          10: 'shieldBearer',
+        };
+  
+        const resultId = personalityByScore[score];
+        const matched = personalities.find((p) => p.id === resultId)!;
+  
         setResult(matched);
         setPageIndex(pages.indexOf('result'));
       }, 5000);
       return () => clearTimeout(timeout);
     }
   }, [page]);
+  
+  
 
   const next = () => setPageIndex((prev) => Math.min(prev + 1, pages.length - 1));
   const handleAnswer = (index: number) => {
@@ -275,55 +370,149 @@ export default function WorkerPlayground() {
   };
 
   return (
-    <div className="w-full h-screen overflow-hidden relative">
-      <AnimatePresence mode="wait">
-        {page === 'loading' && (
-          <motion.div
-            key="loading"
-            className="absolute inset-0 bg-cover bg-center flex flex-col items-center justify-center text-white"
-            style={{ backgroundImage: 'url(/bg-start-page.png)' }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <img src="/bird-icon.png" alt="bird icon" className="w-16 h-16 mb-4" />
-            <div className="text-3xl font-bold mb-2">打工人小劇場</div>
-            <div className="text-base mb-6">找找你的職場主角</div>
-            <button
-              onClick={next}
-              className="bg-white text-black px-8 py-2 rounded-full text-lg font-bold shadow-lg border border-white"
-            >
-              進入測驗
-            </button>
-          </motion.div>
-        )}
-        {page === 'nameInput' && (
-          <motion.div
-            key="nameInput"
-            className="absolute inset-0 bg-cover bg-center flex flex-col items-center justify-center text-white px-6"
-            style={{ backgroundImage: "url('/bg-name-page.png')" }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <div className="text-2xl font-bold text-center mb-4 leading-relaxed">
-              主人您好！<br />
-              請問該怎麼稱呼你
-            </div>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="bg-transparent border-b-2 border-white text-white text-center text-lg px-4 py-2 w-64 mb-6 placeholder-white focus:outline-none"
-              placeholder="輸入姓名"
-            />
-            <button
-              onClick={next}
-              className="bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full px-10 py-3 text-lg font-bold text-white shadow-lg hover:opacity-90 transition"
-            >
-              下一步
-            </button>
-          </motion.div>
-        )}
+    
+    <div className="w-full h-full overflow-hidden relative">
+      {/* 音樂控制按鈕 */}
+<img
+  src={isPlaying ? "/volume.png" : "/volume-off.png"}
+  alt="音樂開關"
+  onClick={toggleMusic}
+  style={{
+    position: "absolute",
+    top: "60px",
+    right: "60px",
+    width: "100px",
+    height: "100px",
+    cursor: "pointer",
+    zIndex: 50,
+  }}
+/>
+  <AnimatePresence mode="wait">
+    {page === 'loading' && (
+      <motion.div
+        key="loading"
+        className="absolute inset-0 bg-cover bg-center flex flex-col items-center justify-center text-white"
+        style={{ backgroundImage: 'url(/bg-start-page.png)' }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        <img
+          src="/bird-icon.png"
+          alt="bird icon"
+          style={{
+            width: "146.128px",
+            height: "131.593px",
+            marginBottom: "40px",
+          }}
+        />
+        <div
+          style={{
+            fontSize: "117.414px",
+            fontWeight: "bold",
+            marginBottom: "20px",
+          }}
+        >
+          打工人小劇場
+        </div>
+        <div
+          style={{
+            fontSize: "68.279px",
+            marginBottom: "40px",
+          }}
+        >
+          找找你的職場主角
+        </div>
+        <button
+            onClick={() => {
+              clickSound?.play(); // ✅ 播放音效
+              next();             // ✅ 原本邏輯
+            }}
+          style={{
+            width: "790px",
+            height: "141px",
+            backgroundColor: 'rgba(22, 22, 23, 0.5)',
+            color: "#ffffff",
+            fontSize: "78px",
+            fontWeight: "bold",
+            borderRadius: "9999px",
+            boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+            border: "1px solid #FFF",
+          }}
+        >
+          進入測驗
+        </button>
+      </motion.div>
+    )}
+       {page === 'nameInput' && (
+  <motion.div
+    key="nameInput"
+    className="absolute inset-0 bg-cover bg-center flex flex-col items-center justify-center text-white"
+    style={{ backgroundImage: "url('/bg-name-page.png')" }}
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+  >
+    {/* 主標題 */}
+    <div
+      style={{
+        fontSize: '68.279px',
+        fontWeight: 700,
+        textAlign: 'center',
+        lineHeight: '1.5',
+        marginBottom: '60px',
+      }}
+    >
+      主人您好！<br />
+      請問該怎麼稱呼你
+    </div>
+
+    {/* 輸入姓名 */}
+    <input
+      value={name}
+      onChange={(e) => setName(e.target.value)}
+      className="bg-transparent text-white text-center focus:outline-none"
+      style={{
+        fontSize: '48px',
+        width: '669px',
+        marginBottom: '10px',
+      }}
+      placeholder="輸入姓名"
+    />
+
+    {/* 底線 */}
+    <div
+      style={{
+        width: '669px',
+        height: '5px',
+        backgroundColor: '#FFF',
+        opacity: 0.5,
+        marginBottom: '100px',
+      }}
+    />
+
+    {/* 下一步按鈕 */}
+    <button
+        onClick={() => {
+          clickSound?.play(); // ✅ 播放音效
+          next();             // ✅ 原本邏輯
+        }}
+      style={{
+        width: '817px',
+        height: '151px',
+        backgroundColor: 'rgba(22, 22, 23, 0.5)',
+        borderRadius: '75.5px',
+        fontSize: '64px',
+        fontWeight: 'bold',
+        color: 'white',
+        border: "1px solid #FFF",
+      }}
+    >
+      下一步
+    </button>
+  </motion.div>
+)}
+
 
         {/* 問題 Q1 頁 */}
         {page === 'q1' && (
@@ -334,304 +523,417 @@ export default function WorkerPlayground() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="text-2xl font-bold mb-4 leading-relaxed"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
             >
+      {/* H1 標題 */}
+        <motion.div
+            style={{
+            fontSize: '69.688px',
+            fontWeight: 'bold',
+            marginBottom: '24px',
+            lineHeight: '1.4',
+      }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+    >
               走進會議室<br />發現你變成一隻打工貓…
             </motion.div>
             <motion.div
-              className="text-base mb-6 leading-relaxed"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
+            style={{
+            fontSize: '44.855px',
+            fontWeight: 'normal',
+            marginBottom: '48px',
+            lineHeight: '1.5',
+            width: '583.111px',
+      }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+    >
               桌上躺著一份緊急專案，老闆開口：「誰來負責？」<br />你會——
             </motion.div>
-            <motion.button
-              onClick={() => handleAnswer(0)}
-              className="bg-white text-black px-6 py-2 rounded-full mb-3 w-full max-w-xs shadow-md"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
-            >
-              看沒人舉起手，主動說我來吧！
-            </motion.button>
-            <motion.button
-              onClick={() => handleAnswer(1)}
-              className="bg-white text-black px-6 py-2 rounded-full mb-3 w-full max-w-xs shadow-md"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.0 }}
-            >
-              假裝沒聽見，低頭做自己的事情
-            </motion.button>
-            <motion.button
-              onClick={() => handleAnswer(2)}
-              className="bg-white text-black px-6 py-2 rounded-full w-full max-w-xs shadow-md"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.2 }}
-            >
-              環視大家，默默記下誰在裝死
-            </motion.button>
-          </motion.div>
-        )}
 
-        {/* 問題 Q2 頁 */}
-        {page === 'q2' && (
-          <motion.div
-            key="q2"
-            className="absolute inset-0 bg-cover bg-center flex flex-col items-center justify-center text-white px-6 text-center"
-            style={{ backgroundImage: "url('/bg-q2.png')" }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="text-2xl font-bold mb-4 leading-relaxed"
+            {[ // 選項清單
+          '看沒人舉起手，主動說我來吧！',
+          '假裝沒聽見，低頭做自己的事情',
+          '環視大家，默默記下誰在裝死',
+    ].map((text, index) => (
+      <motion.button
+        key={index}
+        onClick={() => {
+          clickSound?.play();      // ✅ 播放音效
+          handleAnswer(index);     // ✅ 執行原有邏輯
+        }}
+        style={{
+              width: '713px',
+              height: '100px',
+              borderRadius: '50px',
+              background: '#FFF',
+              color: '#000',
+              fontSize: '44.855px',
+              fontWeight: 'bold',
+              marginBottom: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+        }}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              剛坐下，你發現桌上擺著一顆<br />能說真心話的「貓貓水晶球」
-            </motion.div>
-            <motion.div
-              className="text-base mb-6 leading-relaxed"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              據說它會播放你最近的「真實心聲」給全場聽。<br />你會怎麼做？
-            </motion.div>
-            <motion.button
-              onClick={() => handleAnswer(0)}
-              className="bg-white text-black px-6 py-2 rounded-full mb-3 w-full max-w-xs shadow-md"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
-            >
-              把水晶球丟給隔壁同事，說「這適合你」
-            </motion.button>
-            <motion.button
-              onClick={() => handleAnswer(1)}
-              className="bg-white text-black px-6 py-2 rounded-full mb-3 w-full max-w-xs shadow-md"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.0 }}
-            >
-              小聲嘆氣，我只是想賺點小錢，不想扛業績
-            </motion.button>
-            <motion.button
-              onClick={() => handleAnswer(2)}
-              className="bg-white text-black px-6 py-2 rounded-full w-full max-w-xs shadow-md"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.2 }}
-            >
-              你看著水晶球說「這應該交給領導者」
-            </motion.button>
-          </motion.div>
-        )}
+              transition={{ delay: 0.8 + index * 0.2 }}
+      >
+        {text}
+      </motion.button>
+    ))}
+  </motion.div>
+)}
 
-                {/* 問題 Q3 頁 */}
-                {page === 'q3' && (
-          <motion.div
-            key="q3"
-            className="absolute inset-0 bg-cover bg-center flex flex-col items-center justify-center text-white px-6 text-center"
-            style={{ backgroundImage: "url('/bg-q3.png')" }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="text-2xl font-bold mb-4 leading-relaxed"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              桌下還藏了一個「時光罐頭」
-            </motion.div>
-            <motion.div
-              className="text-base mb-6 leading-relaxed"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              據說吃了能讓你回到<br />上周五下班以前<br />你會怎麼做？
-            </motion.div>
-            <motion.button
-              onClick={() => handleAnswer(0)}
-              className="bg-white text-black px-6 py-2 rounded-full mb-3 w-full max-w-xs shadow-md"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
-            >
-              立刻開罐：「我要重新過一次！」
-            </motion.button>
-            <motion.button
-              onClick={() => handleAnswer(1)}
-              className="bg-white text-black px-6 py-2 rounded-full mb-3 w-full max-w-xs shadow-md"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.0 }}
-            >
-              默默放進包包，回家慢慢想
-            </motion.button>
-            <motion.button
-              onClick={() => handleAnswer(2)}
-              className="bg-white text-black px-6 py-2 rounded-full w-full max-w-xs shadow-md"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.2 }}
-            >
-              看看有沒有人看到，考慮放回去當沒看到
-            </motion.button>
-          </motion.div>
-        )}
+{page === 'q2' && (
+  <motion.div
+    key="q2"
+    className="absolute inset-0 bg-cover bg-center flex flex-col items-center justify-center text-white px-6 text-center"
+    style={{ backgroundImage: "url('/bg-q2.png')" }}
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+  >
+    {/* H1 標題 */}
+    <motion.div
+      style={{
+        fontSize: '69.688px',
+        fontWeight: 'bold',
+        marginBottom: '24px',
+        lineHeight: '1.4',
+      }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.2 }}
+    >
+      剛坐下，你發現桌上擺著一顆<br />能說真心話的「貓貓水晶球」
+    </motion.div>
 
-        {/* 問題 Q4 頁 */}
-        {page === 'q4' && (
-          <motion.div
-            key="q4"
-            className="absolute inset-0 bg-cover bg-center flex flex-col items-center justify-center text-white px-6 text-center"
-            style={{ backgroundImage: "url('/bg-q4.png')" }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="text-2xl font-bold mb-4 leading-relaxed"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              中午你打開冰箱，發現便當盒被打開過…
-            </motion.div>
-            <motion.div
-              className="text-base mb-6 leading-relaxed"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              肉被吃掉只剩白飯<br />上面還貼了便利貼：<br />「今天也要努力喔！加油～」<br />你會怎麼做？
-            </motion.div>
-            <motion.button
-              onClick={() => handleAnswer(0)}
-              className="bg-white text-black px-6 py-2 rounded-full mb-3 w-full max-w-xs shadow-md"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
-            >
-              全樓廣播尋找兇手
-            </motion.button>
-            <motion.button
-              onClick={() => handleAnswer(1)}
-              className="bg-white text-black px-6 py-2 rounded-full mb-3 w-full max-w-xs shadow-md"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.0 }}
-            >
-              打開抽屜，拿出昨天還沒吃完的東西
-            </motion.button>
-            <motion.button
-              onClick={() => handleAnswer(2)}
-              className="bg-white text-black px-6 py-2 rounded-full w-full max-w-xs shadow-md"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.2 }}
-            >
-              決定午休去頂樓曬太陽
-            </motion.button>
-          </motion.div>
-        )}
+    {/* H2 標題（副標題） */}
+    <motion.div
+      style={{
+        fontSize: '44.855px',
+        fontWeight: 'normal',
+        marginBottom: '48px',
+        lineHeight: '1.5',
+        width: '583.111px',
+      }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.5 }}
+    >
+      據說它會播放你最近的「真實心聲」給全場聽。<br />你會怎麼做？
+    </motion.div>
 
-        {/* 問題 Q5 頁 */}
-        {page === 'q5' && (
-          <motion.div
-            key="q5"
-            className="absolute inset-0 bg-cover bg-center flex flex-col items-center justify-center text-white px-6 text-center"
-            style={{ backgroundImage: "url('/bg-q5.png')" }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="text-2xl font-bold mb-4 leading-relaxed"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              會議快結束時<br />魔王老闆突然拍桌
-            </motion.div>
-            <motion.div
-              className="text-base mb-6 leading-relaxed"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              「這份報告誰 present？<br />馬上！」<br />你會怎麼做？
-            </motion.div>
-            <motion.button
-              onClick={() => handleAnswer(0)}
-              className="bg-white text-black px-6 py-2 rounded-full mb-3 w-full max-w-xs shadow-md"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
-            >
-              雖然手在抖但還是走上前，眼神堅定說：「我來。」
-            </motion.button>
-            <motion.button
-              onClick={() => handleAnswer(1)}
-              className="bg-white text-black px-6 py-2 rounded-full mb-3 w-full max-w-xs shadow-md"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.0 }}
-            >
-              嗚...我今天有點感冒...」聲音比空氣還小
-            </motion.button>
-            <motion.button
-              onClick={() => handleAnswer(2)}
-              className="bg-white text-black px-6 py-2 rounded-full w-full max-w-xs shadow-md"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.2 }}
-            >
-              假裝打開資料夾裝忙
-            </motion.button>
-          </motion.div>
-        )}
+    {/* 選項按鈕區塊 */}
+    {[
+      '把水晶球丟給隔壁同事，說「這適合你」',
+      '小聲嘆氣，我只是想賺點小錢，不想扛業績',
+      '你看著水晶球說「這應該交給領導者」',
+    ].map((text, index) => (
+      <motion.button
+        key={index}
+        onClick={() => {
+          clickSound?.play();      // ✅ 播放音效
+          handleAnswer(index);     // ✅ 執行原有邏輯
+        }}
+        style={{
+          width: '890px',
+          height: '100px',
+          borderRadius: '50px',
+          background: '#FFF',
+          color: '#000',
+          fontSize: '44.855px',
+          fontWeight: 'bold',
+          marginBottom: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+        }}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.8 + index * 0.2 }}
+      >
+        {text}
+      </motion.button>
+    ))}
+  </motion.div>
+)}
 
+{page === 'q3' && (
+  <motion.div
+    key="q3"
+    className="absolute inset-0 bg-cover bg-center flex flex-col items-center justify-center text-white px-6 text-center"
+    style={{ backgroundImage: "url('/bg-q3.png')" }}
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+  >
+    {/* H1 標題 */}
+    <motion.div
+      style={{
+        fontSize: '69.688px',
+        fontWeight: 'bold',
+        marginBottom: '24px',
+        lineHeight: '1.4',
+      }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.2 }}
+    >
+      桌下還藏了一個「時光罐頭」
+    </motion.div>
+
+    {/* H2 副標題 */}
+    <motion.div
+      style={{
+        fontSize: '44.855px',
+        fontWeight: 'normal',
+        marginBottom: '48px',
+        lineHeight: '1.5',
+        width: '583.111px',
+      }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.5 }}
+    >
+      據說吃了能讓你回到<br />上周五下班以前<br />你會怎麼做？
+    </motion.div>
+
+    {/* 選項按鈕 */}
+    {[
+      '立刻開罐：「我要重新過一次！」',
+      '默默放進包包，回家慢慢想',
+      '看看有沒有人看到，考慮放回去當沒看到',
+    ].map((text, index) => (
+      <motion.button
+        key={index}
+        onClick={() => {
+          clickSound?.play();      // ✅ 播放音效
+          handleAnswer(index);     // ✅ 執行原有邏輯
+        }}
+        style={{
+          width: '880px',
+          height: '100px',
+          borderRadius: '50px',
+          background: '#FFF',
+          color: '#000',
+          fontSize: '44.855px',
+          fontWeight: 'bold',
+          marginBottom: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+        }}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.8 + index * 0.2 }}
+      >
+        {text}
+      </motion.button>
+    ))}
+  </motion.div>
+)}
+
+
+{page === 'q4' && (
+  <motion.div
+    key="q4"
+    className="absolute inset-0 bg-cover bg-center flex flex-col items-center justify-center text-white px-6 text-center"
+    style={{ backgroundImage: "url('/bg-q4.png')" }}
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+  >
+    {/* H1 主標題 */}
+    <motion.div
+      style={{
+        fontSize: '69.688px',
+        fontWeight: 'bold',
+        marginBottom: '24px',
+        lineHeight: '1.4',
+      }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.2 }}
+    >
+      中午你打開冰箱，發現便當盒被打開過…
+    </motion.div>
+
+    {/* H2 副標題 */}
+    <motion.div
+      style={{
+        fontSize: '44.855px',
+        fontWeight: 'normal',
+        marginBottom: '48px',
+        lineHeight: '1.5',
+        width: '583.111px',
+      }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.5 }}
+    >
+      肉被吃掉只剩白飯<br />上面還貼了便利貼：<br />「今天也要努力喔！加油～」<br />你會怎麼做？
+    </motion.div>
+
+    {/* 選項按鈕 */}
+    {[
+      '全樓廣播尋找兇手',
+      '開抽屜，拿出昨天還沒吃完的東西',
+      '決定午休去頂樓曬太陽',
+    ].map((text, index) => (
+      <motion.button
+        key={index}
+        onClick={() => {
+          clickSound?.play();      // ✅ 播放音效
+          handleAnswer(index);     // ✅ 執行原有邏輯
+        }}
+        style={{
+          width: '713px',
+          height: '100px',
+          borderRadius: '50px',
+          background: '#FFF',
+          color: '#000',
+          fontSize: '44.855px',
+          fontWeight: 'bold',
+          marginBottom: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+        }}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.8 + index * 0.2 }}
+      >
+        {text}
+      </motion.button>
+    ))}
+  </motion.div>
+)}
+
+
+{page === 'q5' && (
+  <motion.div
+    key="q5"
+    className="absolute inset-0 bg-cover bg-center flex flex-col items-center justify-center text-white px-6 text-center"
+    style={{ backgroundImage: "url('/bg-q5.png')" }}
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+  >
+    {/* H1 主標題 */}
+    <motion.div
+      style={{
+        fontSize: '69.688px',
+        fontWeight: 'bold',
+        marginBottom: '24px',
+        lineHeight: '1.4',
+      }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.2 }}
+    >
+      會議快結束時<br />魔王老闆突然拍桌
+    </motion.div>
+
+    {/* H2 副標題 */}
+    <motion.div
+      style={{
+        fontSize: '44.855px',
+        fontWeight: 'normal',
+        marginBottom: '48px',
+        lineHeight: '1.5',
+        width: '583.111px',
+      }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.5 }}
+    >
+      「這份報告誰 present？<br />馬上！」<br />你會怎麼做？
+    </motion.div>
+
+    {/* 選項按鈕 */}
+    {[
+      '雖然手在抖但還是走上前，眼神堅定說：「我來。」',
+      '嗚...我今天有點感冒...」聲音比空氣還小',
+      '假裝打開資料夾裝忙',
+    ].map((text, index) => (
+      <motion.button
+        key={index}
+        onClick={() => {
+          clickSound?.play();      // ✅ 播放音效
+          handleAnswer(index);     // ✅ 執行原有邏輯
+        }}
+        style={{
+          width: '880px',
+          height: '100px',
+          lineHeight: '1',
+          borderRadius: '50px',
+          background: '#FFF',
+          color: '#000',
+          fontSize: '44.855px',
+          fontWeight: 'bold',
+          marginBottom: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+        }}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.8 + index * 0.2 }}
+      >
+        {text}
+      </motion.button>
+    ))}
+  </motion.div>
+)}
 
         {/* 分析 loading 頁面 */}
         {page === 'analysisLoading' && (
-          <motion.div
-            key="analysisLoading"
-            className="absolute inset-0 bg-cover bg-center flex flex-col items-center justify-center text-white px-6 text-center"
-            style={{ backgroundImage: "url('/bg-analysis.png')" }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="text-xl mb-6"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              你的職場主角是……
-            </motion.div>
-            <motion.div
-              className="animate-spin w-12 h-12 border-4 border-white border-t-transparent rounded-full"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-            />
-          </motion.div>
-        )}
+  <motion.div
+    key="analysisLoading"
+    className="absolute inset-0 bg-cover bg-center flex flex-col items-center justify-center text-white px-6 text-center"
+    style={{ backgroundImage: "url('/bg-analysis.png')" }}
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+  >
+    {/* 標題文字 */}
+    <motion.div
+      style={{
+        fontSize: '68.279px',
+        fontWeight: 'bold',
+        marginBottom: '48px',
+      }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.3 }}
+    >
+      你的職場主角是……
+    </motion.div>
+
+    {/* loading 動畫圓圈（放大 4.4 倍） */}
+    <motion.div
+      className="animate-spin border-4 border-white border-t-transparent rounded-full"
+      style={{
+        width: '52.8px',  // 12 * 4.4
+        height: '52.8px',
+        borderWidth: '17.6px', // 4 * 4.4
+      }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.6 }}
+    />
+  </motion.div>
+)}
+
 
 // === 角色結果畫面排版區塊 ===
 {page === 'result' && result && (
@@ -785,7 +1087,7 @@ export default function WorkerPlayground() {
     paddingLeft: '32px',
     position: 'absolute', left: 49, top: 530, zIndex: 10 }}>
     {personalityQuotes[result.id].quotes.map((text, index) => {
-      const widthList = ['360.689px', '281px', '247px', '261px'];
+      const widthList = ['360px', '360px', '360px', '360px'];
       return (
         <div
           key={index}
@@ -809,6 +1111,166 @@ export default function WorkerPlayground() {
   </div>
 )}
 
+{/* 情緒宣言區塊 */}
+<div
+  className="absolute"
+  style={{
+    left: 582,
+    top: 1055,
+    width: 450,
+    height: 286,
+    borderRadius: '17.5px',
+    background: (personalityEmotionQuotes as any)[result.id].background,
+    zIndex: 5,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    overflow: 'hidden'
+  }}
+>
+  {/* 標題底框 */}
+  <div
+    style={{
+      width: 450,
+      height: 85.75,
+      borderRadius: '17.5px 17.5px 0px 0px',
+      background: (personalityEmotionQuotes as any)[result.id].headerBg,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}
+  >
+    <div
+      style={{
+        fontSize: 42,
+        fontWeight: 800,
+        lineHeight: '61.25px',
+        letterSpacing: '2.1px',
+        color: (personalityEmotionQuotes as any)[result.id].headerTextColor,
+      }}
+    >
+      情緒宣言
+    </div>
+  </div>
+
+  {/* 內文 */}
+  <div
+    style={{
+      padding: '24px',
+      textAlign: 'center',
+      fontSize: 42,
+      fontWeight: 800,
+      lineHeight: '61.25px',
+      letterSpacing: '2.1px',
+      color: (personalityEmotionQuotes as any)[result.id].textColor,
+    }}
+  >
+    {(personalityEmotionQuotes as any)[result.id].content}
+  </div>
+</div>
+
+
+{result && (personalityEmotionQuotes as any)[result.id] && (
+  <>
+    {/* 互相治癒區塊 */}
+    <div
+      className="absolute"
+      style={{
+        left: 65,
+        top: 1410,
+        width: '467.15px',
+        height: '203.875px',
+        borderRadius: '17.5px',
+        border: '0.875px solid #FFF',
+        background: (relationBlockBackground as any)[result.id], // 這邊我接下來給你
+        zIndex: 10
+      }}
+    >
+      {/* 標題底框 */}
+      <div
+        style={{
+          width: '467.15px',
+          height: '85.75px',
+          background: (relationHeaderBackground as any)[result.id],
+          borderRadius: '17.5px 17.5px 0px 0px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '36px',
+          fontWeight: 800,
+          color: '#FFF',
+        }}
+      >
+        互相治癒
+      </div>
+      {/* icon 清單 */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        gap: '24px',
+        paddingTop: '28px'
+      }}>
+        {(personalityRelations as any)[result.id].heal.map((charId: string) => (
+          <img
+            key={charId}
+            src={`/icon-${charId}.png`}
+            alt={charId}
+            style={{ width: '72px', height: '72px', borderRadius: '50%' }}
+          />
+        ))}
+      </div>
+    </div>
+
+    {/* 互相傷害區塊 */}
+    <div
+      className="absolute"
+      style={{
+        right: 52,
+        top: 1410,
+        width: '450px',
+        height: '203.875px',
+        borderRadius: '17.5px',
+        border: '0.875px solid #FFF',
+        background: (relationBlockBackground as any)[result.id],
+        zIndex: 10
+      }}
+    >
+      {/* 標題底框 */}
+      <div
+        style={{
+          width: '455px',
+          height: '85.75px',
+          background: (relationHeaderBackground as any)[result.id],
+          borderRadius: '17.5px 17.5px 0px 0px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '36px',
+          fontWeight: 800,
+          color: '#FFF',
+        }}
+      >
+        互相傷害
+      </div>
+      {/* icon 清單 */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        gap: '24px',
+        paddingTop: '28px'
+      }}>
+        {(personalityRelations as any) [result.id].hurt.map((charId: string) => (
+          <img
+            key={charId}
+            src={`/icon-${charId}.png`}
+            alt={charId}
+            style={{ width: '72px', height: '72px', borderRadius: '50%' }}
+          />
+        ))}
+      </div>
+    </div>
+  </>
+)}
 
 
     {/* 角色圖片 - 放到最底層並放大 */}
@@ -817,9 +1279,9 @@ export default function WorkerPlayground() {
       alt={result.name}
       className="absolute"
       style={{
-        right: 100,
-        top: 100,
-        width: '560px',
+        right: 120,
+        top: 80,
+        width: '500px',
         zIndex: 0,
         transform: 'scale(1.24)',
         transformOrigin: 'top left'
@@ -829,8 +1291,6 @@ export default function WorkerPlayground() {
 )}
 
       </AnimatePresence>
-    </div> // ← 這是外層 div 的結尾
-  );  
 
     {/* Debug 區塊顯示 result.id */}
     <div className="text-xs mt-4 text-white">
@@ -840,13 +1300,13 @@ export default function WorkerPlayground() {
     </div>
 
   {/* 分享按鈕區塊 */}
-  
+  {result && (
   <div
     className="absolute bottom-0 left-0"
     style={{
       width: '1080px',
       height: '156px',
-      background: personalityColors[result!.id],
+      background: '#000',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -858,4 +1318,6 @@ export default function WorkerPlayground() {
   >
     🔗 分享網站給朋友
   </div>
-</motion.div>
+)}
+  </div> // ✅ 外層 div 結尾
+)};        // ✅ return 結尾
