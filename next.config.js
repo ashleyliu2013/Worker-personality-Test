@@ -1,12 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  basePath: '/Worker-personality-Test',         // ✅ 路徑前綴（網址路徑）
-  assetPrefix: '/Worker-personality-Test/',     // ✅ 靜態資源前綴（注意結尾要有 /）
+  output: 'export', 
   images: {
-    unoptimized: true,                          // ✅ 禁用 next/image 最佳化
+    unoptimized: true,          
   },
   eslint: {
-    ignoreDuringBuilds: true                    // ✅ 忽略 eslint 錯誤
+    ignoreDuringBuilds: true   
   }
 };
 
